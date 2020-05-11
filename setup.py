@@ -9,7 +9,7 @@ with open("README.md") as fh:
 
 setup(
     name="cli-builder",
-    version="0.0.0",
+    version="0.0.1",
     description="Decorators for building command group CLIs",
     long_description=long_description,
     long_description_content_type='text/markdown',
