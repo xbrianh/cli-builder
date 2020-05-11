@@ -35,3 +35,5 @@ Package distribution [PyPI](https://pypi.org/project/cli-builder/)
 
 ### Bugs
 Please report bugs, issues, feature requests, etc. on [GitHub](https://github.com/xbrianh/cli-builder).
+
+![](https://travis-ci.org/xbrianh/cli-builder.svg?branch=master) ![](https://badge.fury.io/py/cli-builder.svg)
