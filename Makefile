@@ -20,8 +20,8 @@ cli_builder/version.py: setup.py
 clean:
 	git clean -dfx
 
-build: clean
-	python setup.py sdist
+build: clean version
+	python setup.py bdist_wheel
 
 install: build
 	pip install --upgrade dist/*.whl
