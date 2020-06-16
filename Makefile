@@ -1,3 +1,5 @@
+include common.mk
+
 MODULES=cli_builder tests
 
 test: lint mypy tests
