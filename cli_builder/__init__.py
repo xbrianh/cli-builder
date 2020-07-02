@@ -24,10 +24,11 @@ import argparse
 import traceback
 
 
-class _group:
-    def __init__(self, group_name, dispatcher):
+class _Group:
+    def __init__(self, group_name: str, dispatcher, arg_processor: typing.Callable):
         self.group_name = group_name
         self.dispatcher = dispatcher
+        self.arg_processor = arg_processor
 
     def command(self, name: str, *, arguments: dict=None, mutually_exclusive: list=None):
         dispatcher = self.dispatcher
@@ -53,6 +54,7 @@ class _group:
                     group.add_argument(argname, **kwargs)
             parser.set_defaults(func=func)
             dispatcher.commands[func] = dict(group=dispatcher.groups[self.group_name], name=name)
+            func.arg_processor = self.arg_processor
             return func
         return register_command
 
@@ -67,18 +69,26 @@ class Dispatch:
                                               formatter_class=argparse.RawDescriptionHelpFormatter)
         self.parser_groups = self.parser.add_subparsers()
 
-    def group(self, name: str, *, arguments: dict=None, mutually_exclusive: list=None, help=None):
+    def group(self,
+              name: str,
+              *,
+              arguments: dict=None,
+              mutually_exclusive: list=None,
+              help=None,
+              arg_processor: typing.Callable=None):
         arguments = arguments or dict()
         group = self.parser_groups.add_parser(name, help=help)
         self.groups[name] = dict(subparser=group.add_subparsers(),
                                  arguments=arguments,
                                  mutually_exclusive=mutually_exclusive)
-        return _group(name, self)
+        return _Group(name, self, arg_processor)
 
     def __call__(self, argv):
         args = self.parser.parse_args(argv)
         try:
             command = args.func
+            if command.arg_processor:
+                args = command.arg_processor(args)
             try:
                 command(args)
             except Exception:

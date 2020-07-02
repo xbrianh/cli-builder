@@ -23,6 +23,12 @@ class TestXCLI(unittest.TestCase):
 
     def _test_dispatch(self, mutually_exclusive=None, command_overrides=False):
         dispatch = cli_builder.Dispatch()
+        self.did_process_args = False
+
+        def arg_proc(args: argparse.Namespace) -> argparse.Namespace:
+            self.did_process_args = True
+            return args
+
         group = dispatch.group(
             "my_group",
             arguments={
@@ -30,7 +36,8 @@ class TestXCLI(unittest.TestCase):
                 "--argument-a": None,
                 "--argument-b": dict(default="bar"),
             },
-            mutually_exclusive=(["--argument-a", "--argument-b"] if mutually_exclusive else None)
+            mutually_exclusive=(["--argument-a", "--argument-b"] if mutually_exclusive else None),
+            arg_processor=arg_proc
         )
 
         if command_overrides:
@@ -46,6 +53,7 @@ class TestXCLI(unittest.TestCase):
                 self.assertEqual(args.foo, 24)
 
         dispatch(["my_group", "my_command", "24", "--argument-b", "LSDKFJ"])
+        self.assertTrue(self.did_process_args)
 
 
 if __name__ == '__main__':
