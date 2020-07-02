@@ -1,5 +1,6 @@
 import os
 import glob
+import warnings
 import subprocess
 from setuptools import setup, find_packages
 
@@ -9,12 +10,27 @@ with open("README.md") as fh:
     long_description = fh.read()
 
 def get_version():
-    p = subprocess.run(["git", "describe", "--tags", "--match", "v*.*.*"], stdout=subprocess.PIPE)
-    out = p.stdout.decode("ascii").strip()
-    if "-" in out:
-        out = out.split("-", 1)[0]
-    assert out.startswith("v")
-    return out[1:]
+    filepath = os.path.join(os.path.dirname(__file__), "cli_builder", "version.py")
+    if os.path.isfile(filepath):
+        # In source distributions or builds, version is available in the generated cli_builder/version.py file
+        with open(filepath) as fh:
+            version = dict()
+            exec(fh.read().strip(), version)
+            return version['__version__']
+    else:
+        p = subprocess.run(["git", "describe", "--tags", "--match", "v*.*.*"], stdout=subprocess.PIPE)
+        if 128 == p.returncode:
+            warnings.warn('There are no git tags with version information. '
+                          'To tag the first commit as v0.0.0 use '
+                          '`git tag --annotate "v0.0.0" $(git rev-list --max-parents=0 HEAD) -m "v0.0.0"`')
+            return "0"
+        else:
+            p.check_returncode()
+            out = p.stdout.decode("ascii").strip()
+            if "-" in out:
+                out = out.split("-", 1)[0]
+            assert out.startswith("v")
+            return out[1:]
 
 setup(
     name="cli-builder",
