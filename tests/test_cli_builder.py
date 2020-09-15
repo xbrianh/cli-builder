@@ -21,7 +21,15 @@ class TestXCLI(unittest.TestCase):
         with self.subTest("dispatch with command overrides"):
             self._test_dispatch(command_overrides=True)
 
-    def _test_dispatch(self, mutually_exclusive=None, command_overrides=False):
+        with self.subTest("Exception"):
+            with self.assertRaises(SystemExit):
+                self._test_dispatch(exception=Exception)
+
+        with self.subTest("AttributeError"):
+            with self.assertRaises(SystemExit):
+                self._test_dispatch(exception=AttributeError)
+
+    def _test_dispatch(self, mutually_exclusive=None, command_overrides=False, exception=None):
         dispatch = cli_builder.Dispatch()
         self.did_process_args = False
 
@@ -40,15 +48,21 @@ class TestXCLI(unittest.TestCase):
             arg_processor=arg_proc
         )
 
-        if command_overrides:
+        if exception == AttributeError:
+            pass
+        elif command_overrides:
             @group.command("my_command", arguments={"foo": None, "--bar": dict(default="bars")})
             def my_command(args):
+                if exception is not None:
+                    raise exception()
                 self.assertEqual(args.argument_b, "LSDKFJ")
                 self.assertEqual(args.foo, "24")
                 self.assertEqual(args.bar, "bars")
         else:
             @group.command("my_command")
             def my_command(args):
+                if exception is not None:
+                    raise exception()
                 self.assertEqual(args.argument_b, "LSDKFJ")
                 self.assertEqual(args.foo, 24)
 

@@ -18,6 +18,7 @@ def my_cool_command_handler(args):
 ```
 """
 import os
+import sys
 import json
 import typing
 import argparse
@@ -92,9 +93,9 @@ class Dispatch:
             try:
                 command(args)
             except Exception:
-                print(traceback.format_exc())
-        except SystemExit:
-            pass
+                print(traceback.format_exc(), file=sys.stderr)
+                sys.exit(1)
         except AttributeError:
             args = self.parser.parse_args(argv[:1] + ["--help"])
             args.func(args)
+            sys.exit(1)
