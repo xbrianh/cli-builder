@@ -47,12 +47,22 @@ class _Group:
             command_arguments.update(arguments)
             for argname, kwargs in command_arguments.items():
                 if argname not in mutually_exclusive:
-                    parser.add_argument(argname, **(kwargs or dict()))
+                    if isinstance(argname, str):
+                        parser.add_argument(argname, **(kwargs or dict()))
+                    elif isinstance(argname, typing.Iterable):
+                        parser.add_argument(*argname, **(kwargs or dict()))
+                    else:
+                        raise TypeError("argument name must be str or Iterable, not {type(argname)}")
             if mutually_exclusive:
                 group = parser.add_mutually_exclusive_group(required=True)
                 for argname in mutually_exclusive:
                     kwargs = command_arguments.get(argname) or dict()
-                    group.add_argument(argname, **kwargs)
+                    if isinstance(argname, str):
+                        group.add_argument(argname, **kwargs)
+                    elif isinstance(argname, typing.Iterable):
+                        group.add_argument(*argname, **kwargs)
+                    else:
+                        raise TypeError("argument name must be str or Iterable, not {type(argname)}")
             parser.set_defaults(func=func)
             dispatcher.commands[func] = dict(group=dispatcher.groups[self.group_name], name=name)
             func.arg_processor = self.arg_processor
