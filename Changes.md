@@ -1,3 +1,6 @@
+# Changes for v0.1.4 (2020-09-23)
+Support multiple arg names, e.g. -r, --recursive (#10)
+
 # Changes for v0.1.3 (2020-09-21)
 Return non-zero exit codes upon exceptions (#8)
 
