@@ -33,8 +33,33 @@ class TestXCLI(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 self._test_dispatch(exception=AttributeError())
 
-    def _test_dispatch(self, mutually_exclusive=None, command_overrides=False, exception: Optional[Exception]=None):
-        dispatch = cli_builder.Dispatch()
+    def test_error_reporting(self):
+        exc_class = ValueError
+        msg = "doom and gloom"
+        with self.subTest("normal error reporting"):
+            with captured_output() as (stdout, stderr):
+                try:
+                    self._test_dispatch(exception=exc_class(msg))
+                except SystemExit:
+                    pass
+            err_msg = stderr.getvalue().strip()
+            self.assertEqual(f"{exc_class.__name__}: {msg}", err_msg)
+        with self.subTest("debug error reporting"):
+            with captured_output() as (stdout, stderr):
+                try:
+                    self._test_dispatch(exception=exc_class(msg), debug=True)
+                except SystemExit:
+                    pass
+            err_msg = stderr.getvalue().strip()
+            self.assertNotEqual(f"{exc_class.__name__}: {msg}", err_msg)
+            self.assertIn("Traceback", err_msg)
+
+    def _test_dispatch(self,
+                       mutually_exclusive=None,
+                       command_overrides=False,
+                       exception: Optional[Exception]=None,
+                       debug: bool=False):
+        dispatch = cli_builder.Dispatch(debug=debug)
         self.did_process_args = False
 
         def arg_proc(args: argparse.Namespace) -> argparse.Namespace:

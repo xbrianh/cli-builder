@@ -74,11 +74,12 @@ class Dispatch:
     groups: dict = dict()
     commands: dict = dict()
 
-    def __init__(self, description=None):
+    def __init__(self, description=None, debug: bool=False):
         description = description or self.__doc__
         self.parser = argparse.ArgumentParser(description=description,
                                               formatter_class=argparse.RawDescriptionHelpFormatter)
         self.parser_groups = self.parser.add_subparsers()
+        self.debug = debug
 
     def group(self,
               name: str,
@@ -102,8 +103,13 @@ class Dispatch:
                 args = command.arg_processor(args)
             try:
                 command(args)
-            except Exception:
-                print(traceback.format_exc(), file=sys.stderr)
+            except Exception as e:
+                if self.debug:
+                    print(traceback.format_exc(), file=sys.stderr)
+                else:
+                    # Error class is not always reported, e.g. try dict()['nope']
+                    # output error class
+                    print(f"{type(e).__name__}:", e, file=sys.stderr)
                 sys.exit(1)
         except AttributeError:
             args = self.parser.parse_args(argv[:1] + ["--help"])
