@@ -3,6 +3,7 @@ import os
 import sys
 import unittest
 import argparse
+from typing import Optional
 
 pkg_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))  # noqa
 sys.path.insert(0, pkg_root)  # noqa
@@ -23,13 +24,13 @@ class TestXCLI(unittest.TestCase):
 
         with self.subTest("Exception"):
             with self.assertRaises(SystemExit):
-                self._test_dispatch(exception=Exception)
+                self._test_dispatch(exception=Exception())
 
         with self.subTest("AttributeError"):
             with self.assertRaises(SystemExit):
-                self._test_dispatch(exception=AttributeError)
+                self._test_dispatch(exception=AttributeError())
 
-    def _test_dispatch(self, mutually_exclusive=None, command_overrides=False, exception=None):
+    def _test_dispatch(self, mutually_exclusive=None, command_overrides=False, exception: Optional[Exception]=None):
         dispatch = cli_builder.Dispatch()
         self.did_process_args = False
 
@@ -48,13 +49,13 @@ class TestXCLI(unittest.TestCase):
             arg_processor=arg_proc
         )
 
-        if exception == AttributeError:
+        if isinstance(exception, AttributeError):
             pass
         elif command_overrides:
             @group.command("my_command", arguments={"foo": None, "--bar": dict(default="bars")})
             def my_command(args):
                 if exception is not None:
-                    raise exception()
+                    raise exception
                 self.assertEqual(args.argument_b, "LSDKFJ")
                 self.assertEqual(args.foo, "24")
                 self.assertEqual(args.bar, "bars")
@@ -62,13 +63,12 @@ class TestXCLI(unittest.TestCase):
             @group.command("my_command")
             def my_command(args):
                 if exception is not None:
-                    raise exception()
+                    raise exception
                 self.assertEqual(args.argument_b, "LSDKFJ")
                 self.assertEqual(args.foo, 24)
 
         dispatch(["my_group", "my_command", "24", "--argument-b", "LSDKFJ"])
         self.assertTrue(self.did_process_args)
-
 
 if __name__ == '__main__':
     unittest.main()
