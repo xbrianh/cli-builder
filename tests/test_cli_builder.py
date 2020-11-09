@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import io
 import os
 import sys
 import unittest
@@ -9,6 +10,8 @@ pkg_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))  # noq
 sys.path.insert(0, pkg_root)  # noqa
 
 import cli_builder
+
+from contextlib import contextmanager
 
 
 class TestXCLI(unittest.TestCase):
@@ -69,6 +72,16 @@ class TestXCLI(unittest.TestCase):
 
         dispatch(["my_group", "my_command", "24", "--argument-b", "LSDKFJ"])
         self.assertTrue(self.did_process_args)
+
+@contextmanager
+def captured_output():
+    new_out, new_err = io.StringIO(), io.StringIO()
+    old_out, old_err = sys.stdout, sys.stderr
+    try:
+        sys.stdout, sys.stderr = new_out, new_err
+        yield sys.stdout, sys.stderr
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err
 
 if __name__ == '__main__':
     unittest.main()
