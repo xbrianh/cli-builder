@@ -25,6 +25,18 @@ import argparse
 import traceback
 
 
+class RawDefaultHelpFormatter(argparse.RawDescriptionHelpFormatter):
+    """A chimera of RawDescriptionHelpFormatter and ArgumentDefaultsHelpFormatter."""
+    def _get_help_string(self, action):
+        help = action.help
+        if '%(default)' not in action.help:
+            if action.default is not argparse.SUPPRESS:
+                defaulting_nargs = [argparse.OPTIONAL, argparse.ZERO_OR_MORE]
+                if action.option_strings or action.nargs in defaulting_nargs:
+                    help += ' (default: %(default)s)'
+        return help
+
+
 class _Group:
     def __init__(self, group_name: str, dispatcher, arg_processor: typing.Callable):
         self.group_name = group_name
@@ -41,7 +53,7 @@ class _Group:
             parser = dispatcher.groups[self.group_name]['subparser'].add_parser(
                 name,
                 description=func.__doc__,
-                formatter_class=argparse.RawDescriptionHelpFormatter
+                formatter_class=RawDefaultHelpFormatter
             )
             command_arguments = dispatcher.groups[self.group_name]['arguments'].copy()
             command_arguments.update(arguments)
@@ -77,7 +89,7 @@ class Dispatch:
     def __init__(self, description=None, debug: bool=False):
         description = description or self.__doc__
         self.parser = argparse.ArgumentParser(description=description,
-                                              formatter_class=argparse.RawDescriptionHelpFormatter)
+                                              formatter_class=RawDefaultHelpFormatter)
         self.parser_groups = self.parser.add_subparsers()
         self.debug = debug
 
