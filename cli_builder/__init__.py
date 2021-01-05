@@ -52,7 +52,7 @@ class _Group:
                     elif isinstance(argname, typing.Iterable):
                         parser.add_argument(*argname, **(kwargs or dict()))
                     else:
-                        raise TypeError("argument name must be str or Iterable, not {type(argname)}")
+                        raise TypeError(f"argument name must be str or Iterable, not {type(argname)}")
             if mutually_exclusive:
                 group = parser.add_mutually_exclusive_group(required=True)
                 for argname in mutually_exclusive:
@@ -62,7 +62,7 @@ class _Group:
                     elif isinstance(argname, typing.Iterable):
                         group.add_argument(*argname, **kwargs)
                     else:
-                        raise TypeError("argument name must be str or Iterable, not {type(argname)}")
+                        raise TypeError(f"argument name must be str or Iterable, not {type(argname)}")
             parser.set_defaults(func=func)
             dispatcher.commands[func] = dict(group=dispatcher.groups[self.group_name], name=name)
             func.arg_processor = self.arg_processor
