@@ -17,9 +17,7 @@ def my_cool_command_handler(args):
     pass
 ```
 """
-import os
 import sys
-import json
 import typing
 import argparse
 import traceback
